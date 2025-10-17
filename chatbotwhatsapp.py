@@ -15,7 +15,8 @@ GOOGLE_API_KEY = "AIzaSyB0hthTJPT8XadaB7GkA3w0Gy5QKPyLVm4"
 # 2️⃣ Initialize Clients
 # =========================
 # Vonage Messages client (direct API key/secret)
-messages = vonage.Messages(key=VONAGE_API_KEY, secret=VONAGE_API_SECRET)
+client = vonage.Client(key=VONAGE_API_KEY, secret=VONAGE_API_SECRET)
+messages = client.messages
 
 # Google Generative AI
 genai.configure(api_key=GOOGLE_API_KEY)
