@@ -7,16 +7,15 @@ import google.generativeai as genai
 VONAGE_API_KEY = "9e21dc3a"
 VONAGE_API_SECRET = "cttBO%SJicxArD$sd5GlBI*5"
 VONAGE_WHATSAPP_NUMBER = "14157386102"
-TO_WHATSAPP_NUMBER =  "918660029082"                # Recipient number
+TO_WHATSAPP_NUMBER = "918660029082"  # Recipient number
 
-GOOGLE_API_KEY =  "AIzaSyB0hthTJPT8XadaB7GkA3w0Gy5QKPyLVm4"
+GOOGLE_API_KEY = "AIzaSyB0hthTJPT8XadaB7GkA3w0Gy5QKPyLVm4"
 
 # =========================
 # 2️⃣ Initialize Clients
 # =========================
-# Vonage
-vonage_client = vonage.Client(key=VONAGE_API_KEY, secret=VONAGE_API_SECRET)
-messages = vonage.Messages(vonage_client)
+# Vonage Messages client (direct API key/secret)
+messages = vonage.Messages(key=VONAGE_API_KEY, secret=VONAGE_API_SECRET)
 
 # Google Generative AI
 genai.configure(api_key=GOOGLE_API_KEY)
