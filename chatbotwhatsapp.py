@@ -1,54 +1,58 @@
-from flask import Flask, request, jsonify
-import google.generativeai as genai
 import vonage
+import google.generativeai as genai
 
-# ---------------- HARD-CODED CONFIG ----------------
-GENIE_API_KEY = "AIzaSyB0hthTJPT8XadaB7GkA3w0Gy5QKPyLVm4"
+# =========================
+# 1️⃣ Hardcoded API Keys
+# =========================
 VONAGE_API_KEY = "9e21dc3a"
 VONAGE_API_SECRET = "cttBO%SJicxArD$sd5GlBI*5"
-WHATSAPP_NUMBER = "14157386102"
-USER_NUMBER = "918660029082"
+VONAGE_WHATSAPP_NUMBER = "14157386102"
+TO_WHATSAPP_NUMBER =  "918660029082"                # Recipient number
 
-# ---------------- INITIALIZE ----------------
-genai.configure(api_key=GENIE_API_KEY)
-model = genai.GenerativeModel("models/gemini-2.0-flash")
+GOOGLE_API_KEY =  "AIzaSyB0hthTJPT8XadaB7GkA3w0Gy5QKPyLVm4"
 
-# ---------------- VONAGE ----------------
-messaging = vonage.Messaging(key=VONAGE_API_KEY, secret=VONAGE_API_SECRET)
+# =========================
+# 2️⃣ Initialize Clients
+# =========================
+# Vonage
+vonage_client = vonage.Client(key=VONAGE_API_KEY, secret=VONAGE_API_SECRET)
+messages = vonage.Messages(vonage_client)
 
-# ---------------- FLASK ----------------
-app = Flask(__name__)
+# Google Generative AI
+genai.configure(api_key=GOOGLE_API_KEY)
 
-def gk_answer(question: str):
-    prompt = f"You are a general knowledge assistant. Answer in one short paragraph.\n\nQuestion: {question}"
-    response = model.generate_content(prompt)
-    return response.text.strip()
+# =========================
+# 3️⃣ Generate AI Response
+# =========================
+def get_ai_response(prompt):
+    """Generate response from Google Generative AI"""
+    response = genai.chat.completions.create(
+        model="chat-bison-001",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return response.choices[0].message["content"]
 
-def send_whatsapp(text):
-    message = {
-        "channel": "whatsapp",
-        "message_type": "text",
-        "to": USER_NUMBER,
-        "from": WHATSAPP_NUMBER,
-        "text": text
-    }
-    resp = messaging.send_message(message)
-    print("Vonage Response:", resp)
-    return resp
+# =========================
+# 4️⃣ Send WhatsApp Message
+# =========================
+def send_whatsapp_message(to_number, text):
+    response = messages.send_message({
+        "from": {"type": "whatsapp", "number": VONAGE_WHATSAPP_NUMBER},
+        "to": {"type": "whatsapp", "number": to_number},
+        "message": {"content": {"type": "text", "text": text}}
+    })
+    return response
 
-@app.route("/", methods=["GET"])
-def home():
-    return "✅ GK WhatsApp Chatbot is running."
-
-@app.route("/webhook", methods=["POST"])
-def webhook():
-    data = request.get_json(force=True)
-    user_msg = data.get("message", {}).get("content", {}).get("text")
-    if not user_msg:
-        user_msg = str(data)
-    answer = gk_answer(user_msg)
-    send_whatsapp(answer)
-    return jsonify({"status": "ok", "question": user_msg, "answer": answer})
-
+# =========================
+# 5️⃣ Main Function
+# =========================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    user_input = input("Enter your message for AI: ")
+    
+    # Generate AI response
+    ai_text = get_ai_response(user_input)
+    print("AI says:", ai_text)
+    
+    # Send AI response via WhatsApp
+    whatsapp_response = send_whatsapp_message(TO_WHATSAPP_NUMBER, ai_text)
+    print("WhatsApp API Response:", whatsapp_response)
